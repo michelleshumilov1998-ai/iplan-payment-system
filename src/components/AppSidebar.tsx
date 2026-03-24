@@ -21,10 +21,10 @@ export default function AppSidebar() {
     <aside className="w-[260px] shrink-0 border-l border-border bg-card min-h-screen flex flex-col">
       <div className="p-6 border-b border-border">
         <div className="flex items-center gap-3">
-          <LayoutDashboard className="h-6 w-6 text-accent" />
+          <div className="flex items-center justify-center h-9 w-9 rounded-sm bg-primary text-primary-foreground font-black text-sm shrink-0">מת</div>
           <div>
-            <h1 className="text-base font-bold text-foreground leading-tight">מערכת בקשות תשלום</h1>
-            <p className="text-xs text-muted-foreground mt-0.5">ארגון ציבורי</p>
+            <h1 className="text-sm font-bold text-foreground leading-tight">מינהל התכנון</h1>
+            <p className="text-[11px] text-muted-foreground mt-0.5 font-medium">מערכת ניהול דרישות תשלום</p>
           </div>
         </div>
       </div>
