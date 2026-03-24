@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { mockRequests, STATUS_LABELS, URGENCY_LABELS, RequestStatus } from '@/lib/mockData';
 import StatusBadge from '@/components/StatusBadge';
-import { AlertTriangle, Clock, Filter, Search } from 'lucide-react';
+import { AlertTriangle, Clock, Filter, Search, Inbox } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function RequestsList() {
