@@ -56,7 +56,11 @@ export default function SLADashboard() {
                 }}
               />
               <ReferenceLine y={30} stroke="hsl(0, 84%, 60%)" strokeDasharray="4 4" label={{ value: 'יעד SLA', position: 'right', fontSize: 11, fill: 'hsl(0, 84%, 60%)' }} />
-              <Bar dataKey="avgDays" name="ימי טיפול" fill="hsl(210, 100%, 36%)" radius={[1, 1, 0, 0]} />
+              <Bar dataKey="avgDays" name="ימי טיפול" radius={[1, 1, 0, 0]}>
+                {processingTimes.map((entry, i) => (
+                  <Cell key={i} fill={entry.avgDays > 30 ? 'hsl(0, 84%, 60%)' : 'hsl(210, 100%, 36%)'} />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
