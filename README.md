@@ -24,10 +24,11 @@
 ## נספח טכני: מתודולוגיית עבודה ודוגמאות לפרומפטים (בונוס)
 הפרויקט פותח בשיטת Vibe Coding תוך שימוש במודלי שפה מתקדמים. להלן דוגמאות לפורמטים והנחיות מרכזיות ששימשו בפיתוח:
 
-### 1. שימוש בפורמט Context-Action-Constraint
-* **Context:** "מערכת לניהול תשלומים עבור מנהל התכנון, ממשק עובד ארגון."
-* **Action:** "צור טבלה המציגה את כל בקשות התשלום הפתוחות."
-* **Constraint:** "הטבלה חייבת לתמוך ב-RTL מלא, לכלול חיווי ויזואלי ל-SLA מעל 90 יום, ולהשתמש ברכיבי shadcn/ui בלבד."
+#### 1. שימוש בפורמט Context-Action-Constraint
+כדי להבטיח דיוק מרבי, כל רכיב אופיין במבנה הבא:
+* **הקשר (Context):** "מערכת לניהול תשלומים עבור מנהל התכנון, ממשק עובד ארגון."
+* **פעולה (Action):** "צור טבלה המציגה את כל בקשות התשלום הפתוחות."
+* **אילוץ (Constraint):** "הטבלה חייבת לתמוך ב-RTL מלא, לכלול חיווי ויזואלי ל-SLA מעל 90 יום, ולהשתמש ברכיבי shadcn/ui בלבד."
 
 ### 2. דוגמאות לפרומפטים למימוש לוגיקה מורכבת:
 * **מימוש הסינון הדו-שכבתי:** > "Implement dual-layer navigation: 1. A global top search bar for quick lookup. 2. Granular column sorting and filtering (Date, Amount, Urgency) within the table. This is essential for managing large datasets and prioritizing tasks."
