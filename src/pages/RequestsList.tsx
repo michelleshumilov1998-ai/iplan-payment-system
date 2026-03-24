@@ -96,10 +96,16 @@ export default function RequestsList() {
                   <div className="flex items-center gap-1.5">
                     <span className="tabular-nums">{req.daysOpen}</span>
                     {req.daysOpen > 90 && (
-                      <AlertTriangle className="h-4 w-4 text-destructive" />
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-sm bg-destructive/15 text-destructive text-xs font-bold border border-destructive/30">
+                        <AlertTriangle className="h-3.5 w-3.5" />
+                        חריגת SLA
+                      </span>
                     )}
                     {req.daysOpen > 60 && req.daysOpen <= 90 && (
-                      <Clock className="h-4 w-4 text-warning" />
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-sm bg-warning/15 text-warning text-xs font-semibold border border-warning/30">
+                        <Clock className="h-3.5 w-3.5" />
+                        קרוב ל-SLA
+                      </span>
                     )}
                   </div>
                 </td>

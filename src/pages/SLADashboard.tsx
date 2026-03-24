@@ -1,6 +1,7 @@
 import { slaDashboardData, mockRequests } from '@/lib/mockData';
 import StatusBadge from '@/components/StatusBadge';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, ReferenceLine, Legend } from 'recharts';
+// Cell is used for both Pie and Bar conditional coloring
 import { AlertTriangle, Clock, CheckCircle, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 

@@ -1,5 +1,6 @@
 import { useRole } from '@/context/RoleContext';
 import { ArrowLeftRight, User } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function AppHeader() {
   const { role, toggleRole, roleLabel } = useRole();
