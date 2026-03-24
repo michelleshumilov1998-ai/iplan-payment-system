@@ -62,6 +62,8 @@ export default function SubmissionForm() {
             <input
               required
               type="number"
+              min="0.01"
+              step="any"
               value={form.amount}
               onChange={e => setForm(f => ({ ...f, amount: e.target.value }))}
               className="w-full h-10 px-3 border border-border rounded-sm bg-background text-foreground text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-accent"

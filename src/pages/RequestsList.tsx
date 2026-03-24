@@ -7,9 +7,10 @@ import { cn } from '@/lib/utils';
 export default function RequestsList() {
   const [statusFilter, setStatusFilter] = useState<RequestStatus | 'all'>('all');
 
-  const filtered = statusFilter === 'all'
+  const filtered = (statusFilter === 'all'
     ? mockRequests
-    : mockRequests.filter(r => r.status === statusFilter);
+    : mockRequests.filter(r => r.status === statusFilter)
+  ).slice().sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return (
     <div className="p-6 space-y-6 animate-fade-in-up">
