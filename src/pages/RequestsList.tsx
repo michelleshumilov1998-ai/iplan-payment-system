@@ -1,16 +1,22 @@
 import { useState } from 'react';
 import { mockRequests, STATUS_LABELS, URGENCY_LABELS, RequestStatus } from '@/lib/mockData';
 import StatusBadge from '@/components/StatusBadge';
-import { AlertTriangle, Clock, Filter } from 'lucide-react';
+import { AlertTriangle, Clock, Filter, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function RequestsList() {
   const [statusFilter, setStatusFilter] = useState<RequestStatus | 'all'>('all');
+  const [search, setSearch] = useState('');
 
-  const filtered = (statusFilter === 'all'
-    ? mockRequests
-    : mockRequests.filter(r => r.status === statusFilter)
-  ).slice().sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const filtered = mockRequests
+    .filter(r => statusFilter === 'all' || r.status === statusFilter)
+    .filter(r => {
+      if (!search.trim()) return true;
+      const q = search.trim().toLowerCase();
+      return r.title.toLowerCase().includes(q) || r.submitter.toLowerCase().includes(q);
+    })
+    .slice()
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return (
     <div className="p-6 space-y-6 animate-fade-in-up">
