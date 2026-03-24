@@ -1,7 +1,20 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { PROJECTS, UNITS } from '@/lib/mockData';
 import { Upload, Send, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+
+function useHebrewValidity(ref: React.RefObject<HTMLElement | null>, message: string) {
+  useEffect(() => {
+    const el = ref.current as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement | null;
+    if (!el) return;
+    const handler = () => el.setCustomValidity(el.validity.valid ? '' : message);
+    el.addEventListener('invalid', handler);
+    el.addEventListener('input', () => el.setCustomValidity(''));
+    return () => {
+      el.removeEventListener('invalid', handler);
+    };
+  }, [ref, message]);
+}
 
 export default function SubmissionForm() {
   const { toast } = useToast();
@@ -14,6 +27,18 @@ export default function SubmissionForm() {
     urgency: 'medium',
   });
   const [files, setFiles] = useState<string[]>([]);
+
+  const titleRef = useRef<HTMLInputElement>(null);
+  const descRef = useRef<HTMLTextAreaElement>(null);
+  const amountRef = useRef<HTMLInputElement>(null);
+  const projectRef = useRef<HTMLSelectElement>(null);
+  const unitRef = useRef<HTMLSelectElement>(null);
+
+  useHebrewValidity(titleRef, 'נא למלא את כותרת הבקשה');
+  useHebrewValidity(descRef, 'נא למלא את פרטי הביצוע');
+  useHebrewValidity(amountRef, 'נא להזין סכום חיובי');
+  useHebrewValidity(projectRef, 'נא לבחור פרויקט');
+  useHebrewValidity(unitRef, 'נא לבחור יחידה ארגונית');
 
   const handleFileUpload = () => {
     const fakeFiles = ['חשבונית_' + Date.now() + '.pdf'];
@@ -40,6 +65,7 @@ export default function SubmissionForm() {
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">כותרת הבקשה</label>
           <input
+            ref={titleRef}
             required
             value={form.title}
             onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
@@ -51,6 +77,7 @@ export default function SubmissionForm() {
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">פרטי ביצוע</label>
           <textarea
+            ref={descRef}
             required
             value={form.description}
             onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
@@ -64,6 +91,7 @@ export default function SubmissionForm() {
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">סכום (₪)</label>
             <input
+              ref={amountRef}
               required
               type="number"
               min="0.01"
@@ -92,6 +120,7 @@ export default function SubmissionForm() {
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">פרויקט</label>
             <select
+              ref={projectRef}
               required
               value={form.project}
               onChange={e => setForm(f => ({ ...f, project: e.target.value }))}
@@ -104,6 +133,7 @@ export default function SubmissionForm() {
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">יחידה ארגונית</label>
             <select
+              ref={unitRef}
               required
               value={form.unit}
               onChange={e => setForm(f => ({ ...f, unit: e.target.value }))}
