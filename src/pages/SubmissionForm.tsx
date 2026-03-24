@@ -23,6 +23,10 @@ export default function SubmissionForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (parseFloat(form.amount) <= 0) {
+      toast({ title: 'שגיאה', description: 'יש להזין סכום חיובי', variant: 'destructive' });
+      return;
+    }
     toast({ title: 'הבקשה הוגשה בהצלחה', description: 'מספר בקשה: REQ-2025-009' });
     setForm({ title: '', description: '', amount: '', project: '', unit: '', urgency: 'medium' });
     setFiles([]);
