@@ -24,7 +24,7 @@ export default function SubmissionForm() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (parseFloat(form.amount) <= 0) {
-      toast({ title: 'שגיאה', description: 'יש להזין סכום חיובי', variant: 'destructive' });
+      toast({ title: 'שגיאה', description: 'הסכום חייב להיות גדול מ-0', variant: 'destructive' });
       return;
     }
     toast({ title: 'הבקשה הוגשה בהצלחה', description: 'מספר בקשה: REQ-2025-009' });
