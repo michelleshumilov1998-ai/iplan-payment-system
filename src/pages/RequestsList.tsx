@@ -1,33 +1,50 @@
 import { useState } from 'react';
 import { mockRequests, STATUS_LABELS, URGENCY_LABELS, RequestStatus } from '@/lib/mockData';
 import StatusBadge from '@/components/StatusBadge';
-import { AlertTriangle, Clock, Filter } from 'lucide-react';
+import { AlertTriangle, Clock, Filter, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function RequestsList() {
   const [statusFilter, setStatusFilter] = useState<RequestStatus | 'all'>('all');
+  const [search, setSearch] = useState('');
 
-  const filtered = (statusFilter === 'all'
-    ? mockRequests
-    : mockRequests.filter(r => r.status === statusFilter)
-  ).slice().sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const filtered = mockRequests
+    .filter(r => statusFilter === 'all' || r.status === statusFilter)
+    .filter(r => {
+      if (!search.trim()) return true;
+      const q = search.trim().toLowerCase();
+      return r.title.toLowerCase().includes(q) || r.submitter.toLowerCase().includes(q);
+    })
+    .slice()
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return (
     <div className="p-6 space-y-6 animate-fade-in-up">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="text-2xl font-bold text-foreground">רשימת בקשות תשלום</h1>
-        <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-muted-foreground" />
-          <select
-            value={statusFilter}
-            onChange={e => setStatusFilter(e.target.value as RequestStatus | 'all')}
-            className="text-sm border border-border rounded-sm px-2 py-1.5 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
-          >
-            <option value="all">כל הסטטוסים</option>
-            {Object.entries(STATUS_LABELS).map(([k, v]) => (
-              <option key={k} value={k}>{v}</option>
-            ))}
-          </select>
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            <input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="חיפוש לפי שם או כותרת..."
+              className="h-9 pr-9 pl-3 w-56 text-sm border border-border rounded-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <select
+              value={statusFilter}
+              onChange={e => setStatusFilter(e.target.value as RequestStatus | 'all')}
+              className="text-sm border border-border rounded-sm px-2 py-1.5 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+            >
+              <option value="all">כל הסטטוסים</option>
+              {Object.entries(STATUS_LABELS).map(([k, v]) => (
+                <option key={k} value={k}>{v}</option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
