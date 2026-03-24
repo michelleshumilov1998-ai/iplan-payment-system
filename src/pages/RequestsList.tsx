@@ -84,7 +84,17 @@ export default function RequestsList() {
             </tr>
           </thead>
           <tbody>
-            {filtered.map(req => (
+            {filtered.length === 0 ? (
+              <tr>
+                <td colSpan={8} className="py-16 text-center">
+                  <div className="flex flex-col items-center gap-3 text-muted-foreground">
+                    <Inbox className="h-10 w-10 opacity-40" />
+                    <p className="text-sm font-medium">לא נמצאו בקשות תואמות</p>
+                    <p className="text-xs">נסה לשנות את מילות החיפוש או את הסינון</p>
+                  </div>
+                </td>
+              </tr>
+            ) : filtered.map(req => (
               <tr
                 key={req.id}
                 className={cn(
