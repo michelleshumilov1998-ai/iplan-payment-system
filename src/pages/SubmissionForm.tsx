@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { PROJECTS, UNITS } from '@/lib/mockData';
+import { useRequests } from '@/context/RequestsContext';
 import { Upload, Send, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -13,6 +15,11 @@ interface FieldErrors {
 
 export default function SubmissionForm() {
   const { toast } = useToast();
+  const { getRequest } = useRequests();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const editId = searchParams.get('edit');
+
   const [form, setForm] = useState({
     title: '',
     description: '',
@@ -23,6 +30,23 @@ export default function SubmissionForm() {
   });
   const [files, setFiles] = useState<string[]>([]);
   const [errors, setErrors] = useState<FieldErrors>({});
+
+  useEffect(() => {
+    if (editId) {
+      const req = getRequest(editId);
+      if (req) {
+        setForm({
+          title: req.title,
+          description: req.description,
+          amount: String(req.amount),
+          project: req.project,
+          unit: req.unit,
+          urgency: req.urgency,
+        });
+        setFiles(req.attachments);
+      }
+    }
+  }, [editId, getRequest]);
 
   const validate = (): boolean => {
     const e: FieldErrors = {};
@@ -56,20 +80,30 @@ export default function SubmissionForm() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
-    toast({ title: 'הבקשה הוגשה בהצלחה', description: 'מספר בקשה: REQ-2025-009' });
+    const msg = editId ? 'הבקשה עודכנה ונשלחה מחדש' : 'הבקשה הוגשה בהצלחה';
+    toast({ title: msg, description: editId ? `בקשה ${editId}` : 'מספר בקשה: REQ-2025-009' });
     setForm({ title: '', description: '', amount: '', project: '', unit: '', urgency: 'medium' });
     setFiles([]);
     setErrors({});
+    if (editId) navigate('/');
   };
 
   const inputClass = (field: keyof FieldErrors, base: string) =>
     `${base} ${errors[field] ? 'border-destructive ring-1 ring-destructive/30' : ''}`;
 
   return (
-    <div className="p-6 max-w-2xl animate-fade-in-up">
-      <h1 className="text-2xl font-bold text-foreground mb-6">הגשת בקשת תשלום חדשה</h1>
+    <div className="p-4 md:p-6 max-w-2xl animate-fade-in-up">
+      <h1 className="text-2xl font-bold text-foreground mb-6">
+        {editId ? `עריכת בקשה ${editId}` : 'הגשת בקשת תשלום חדשה'}
+      </h1>
 
-      <form onSubmit={handleSubmit} noValidate className="bg-card border border-border rounded-sm p-6 space-y-5">
+      {editId && (
+        <div className="mb-4 flex items-center gap-2 px-3 py-2 bg-warning/10 text-warning text-sm font-medium rounded-sm border border-warning/20">
+          בקשה זו הוחזרה להבהרות — ערוך ושלח מחדש
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} noValidate className="bg-card border border-border rounded-sm p-4 md:p-6 space-y-5">
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">כותרת הבקשה</label>
           <input
@@ -93,7 +127,7 @@ export default function SubmissionForm() {
           {errors.description && <p className="text-xs font-medium text-destructive">{errors.description}</p>}
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">סכום (₪)</label>
             <input
@@ -120,7 +154,7 @@ export default function SubmissionForm() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">פרויקט</label>
             <select
@@ -175,7 +209,7 @@ export default function SubmissionForm() {
           className="flex items-center justify-center gap-2 w-full h-10 bg-primary text-primary-foreground rounded-sm text-sm font-semibold hover:bg-primary/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
         >
           <Send className="h-4 w-4" />
-          הגש בקשה
+          {editId ? 'שלח מחדש' : 'הגש בקשה'}
         </button>
       </form>
     </div>
