@@ -79,18 +79,37 @@ export default function SLADashboard() {
 
         <div className="bg-card border border-border rounded-sm p-6">
           <h2 className="text-base font-semibold text-foreground mb-4">התפלגות לפי סטטוס</h2>
-          <ResponsiveContainer width="100%" height={280}>
+          <ResponsiveContainer width="100%" height={320}>
             <PieChart>
               <Pie
                 data={byStatus}
                 cx="50%"
-                cy="50%"
-                outerRadius={100}
-                innerRadius={50}
+                cy="45%"
+                outerRadius={90}
+                innerRadius={45}
                 dataKey="value"
                 nameKey="name"
-                label={({ name, value }) => `${name}: ${value}`}
-                labelLine={false}
+                label={({ cx, cy, midAngle, outerRadius, name, value }) => {
+                  const RADIAN = Math.PI / 180;
+                  const radius = outerRadius + 28;
+                  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+                  return (
+                    <text
+                      x={x}
+                      y={y}
+                      fill="hsl(220, 20%, 20%)"
+                      textAnchor={x > cx ? 'start' : 'end'}
+                      dominantBaseline="central"
+                      fontSize={12}
+                      fontWeight={600}
+                      fontFamily="Assistant, sans-serif"
+                    >
+                      {`${name}: ${value}`}
+                    </text>
+                  );
+                }}
+                labelLine={{ stroke: 'hsl(215, 16%, 65%)', strokeWidth: 1 }}
               >
                 {byStatus.map((entry, i) => (
                   <Cell key={i} fill={entry.color} />
@@ -105,7 +124,11 @@ export default function SLADashboard() {
                   direction: 'rtl',
                 }}
               />
-              <Legend wrapperStyle={{ fontSize: '12px', direction: 'rtl' }} />
+              <Legend
+                wrapperStyle={{ fontSize: '12px', direction: 'rtl', textAlign: 'right', paddingTop: '12px' }}
+                align="right"
+                iconType="circle"
+              />
             </PieChart>
           </ResponsiveContainer>
         </div>
