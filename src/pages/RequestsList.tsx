@@ -1,11 +1,17 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useRequests } from '@/context/RequestsContext';
 import { STATUS_LABELS, URGENCY_LABELS, RequestStatus } from '@/lib/mockData';
 import StatusBadge from '@/components/StatusBadge';
 import { useRole } from '@/context/RoleContext';
 import { useNavigate } from 'react-router-dom';
-import { AlertTriangle, Clock, Filter, Search, Inbox, Flame, Pencil } from 'lucide-react';
+import { AlertTriangle, Clock, Filter, Search, Inbox, Flame, Pencil, ArrowUp, ArrowDown, ArrowUpDown, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+
+type SortField = 'date' | 'amount' | 'urgency' | 'daysOpen';
+type SortDir = 'asc' | 'desc';
+
+const URGENCY_ORDER: Record<string, number> = { high: 3, medium: 2, low: 1 };
 
 export default function RequestsList() {
   const { requests } = useRequests();
@@ -13,16 +19,124 @@ export default function RequestsList() {
   const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState<RequestStatus | 'all'>('all');
   const [search, setSearch] = useState('');
+  const [sortField, setSortField] = useState<SortField | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
+  const [urgencyFilter, setUrgencyFilter] = useState<string[]>([]);
+  const [statusColFilter, setStatusColFilter] = useState<RequestStatus[]>([]);
 
-  const filtered = requests
-    .filter(r => statusFilter === 'all' || r.status === statusFilter)
-    .filter(r => {
-      if (!search.trim()) return true;
-      const q = search.trim().toLowerCase();
-      return r.title.toLowerCase().includes(q) || r.submitter.toLowerCase().includes(q);
-    })
-    .slice()
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const toggleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDir('desc');
+    }
+  };
+
+  const filtered = useMemo(() => {
+    return requests
+      .filter(r => statusFilter === 'all' || r.status === statusFilter)
+      .filter(r => statusColFilter.length === 0 || statusColFilter.includes(r.status))
+      .filter(r => urgencyFilter.length === 0 || urgencyFilter.includes(r.urgency))
+      .filter(r => {
+        if (!search.trim()) return true;
+        const q = search.trim().toLowerCase();
+        return r.title.toLowerCase().includes(q) || r.submitter.toLowerCase().includes(q);
+      })
+      .slice()
+      .sort((a, b) => {
+        if (!sortField) return new Date(b.date).getTime() - new Date(a.date).getTime();
+        const dir = sortDir === 'asc' ? 1 : -1;
+        switch (sortField) {
+          case 'date': return dir * (new Date(a.date).getTime() - new Date(b.date).getTime());
+          case 'amount': return dir * (a.amount - b.amount);
+          case 'urgency': return dir * (URGENCY_ORDER[a.urgency] - URGENCY_ORDER[b.urgency]);
+          case 'daysOpen': return dir * (a.daysOpen - b.daysOpen);
+          default: return 0;
+        }
+      });
+  }, [requests, statusFilter, statusColFilter, urgencyFilter, search, sortField, sortDir]);
+
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortField !== field) return <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground/50" />;
+    return sortDir === 'asc'
+      ? <ArrowUp className="h-3.5 w-3.5 text-primary" />
+      : <ArrowDown className="h-3.5 w-3.5 text-primary" />;
+  };
+
+  const SortableHeader = ({ field, label }: { field: SortField; label: string }) => (
+    <th
+      className={cn(
+        'text-right px-4 py-3 font-semibold cursor-pointer select-none hover:bg-muted/30 transition-colors',
+        sortField === field && 'bg-muted/20 text-primary'
+      )}
+      onClick={() => toggleSort(field)}
+      title={`לחץ למיון לפי ${label}`}
+    >
+      <div className="flex items-center gap-1.5">
+        <span>{label}</span>
+        <SortIcon field={field} />
+      </div>
+    </th>
+  );
+
+  const FilterDropdown = ({ label, options, selected, onToggle }: {
+    label: string;
+    options: { value: string; label: string }[];
+    selected: string[];
+    onToggle: (val: string) => void;
+  }) => (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          className={cn(
+            'p-0.5 rounded-sm hover:bg-muted/50 transition-colors',
+            selected.length > 0 && 'text-primary'
+          )}
+          title={`סנן לפי ${label}`}
+        >
+          <Filter className="h-3.5 w-3.5" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-44 p-2" dir="rtl">
+        <p className="text-xs font-semibold text-muted-foreground mb-2">סנן לפי {label}</p>
+        {options.map(opt => (
+          <button
+            key={opt.value}
+            onClick={() => onToggle(opt.value)}
+            className="flex items-center gap-2 w-full px-2 py-1.5 text-sm rounded-sm hover:bg-muted/50 transition-colors text-right"
+          >
+            <span className={cn(
+              'h-4 w-4 rounded-sm border border-border flex items-center justify-center shrink-0',
+              selected.includes(opt.value) && 'bg-primary border-primary'
+            )}>
+              {selected.includes(opt.value) && <Check className="h-3 w-3 text-primary-foreground" />}
+            </span>
+            <span>{opt.label}</span>
+          </button>
+        ))}
+        {selected.length > 0 && (
+          <button
+            onClick={() => selected.forEach(v => onToggle(v))}
+            className="w-full text-xs text-muted-foreground hover:text-foreground mt-1.5 py-1 text-center"
+          >
+            נקה סינון
+          </button>
+        )}
+      </PopoverContent>
+    </Popover>
+  );
+
+  const toggleUrgencyFilter = (val: string) => {
+    setUrgencyFilter(prev => prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]);
+  };
+  const toggleStatusColFilter = (val: string) => {
+    setStatusColFilter(prev =>
+      prev.includes(val as RequestStatus)
+        ? prev.filter(v => v !== val)
+        : [...prev, val as RequestStatus]
+    );
+  };
 
   return (
     <div className="p-4 md:p-6 space-y-6 animate-fade-in-up">
@@ -135,11 +249,37 @@ export default function RequestsList() {
               <th className="text-right px-4 py-3 font-semibold">מספר בקשה</th>
               <th className="text-right px-4 py-3 font-semibold">כותרת</th>
               <th className="text-right px-4 py-3 font-semibold">מגיש</th>
-              <th className="text-right px-4 py-3 font-semibold">תאריך</th>
-              <th className="text-right px-4 py-3 font-semibold">סכום</th>
-              <th className="text-right px-4 py-3 font-semibold">סטטוס</th>
-              <th className="text-right px-4 py-3 font-semibold">דחיפות</th>
-              <th className="text-right px-4 py-3 font-semibold">ימים פתוחים</th>
+              <SortableHeader field="date" label="תאריך" />
+              <SortableHeader field="amount" label="סכום" />
+              <th className={cn('text-right px-4 py-3 font-semibold', statusColFilter.length > 0 && 'text-primary')}>
+                <div className="flex items-center gap-1.5">
+                  <span>סטטוס</span>
+                  <FilterDropdown
+                    label="סטטוס"
+                    options={Object.entries(STATUS_LABELS).map(([k, v]) => ({ value: k, label: v }))}
+                    selected={statusColFilter}
+                    onToggle={toggleStatusColFilter}
+                  />
+                </div>
+              </th>
+              <th
+                className={cn(
+                  'text-right px-4 py-3 font-semibold cursor-pointer select-none hover:bg-muted/30 transition-colors',
+                  (sortField === 'urgency' || urgencyFilter.length > 0) && 'bg-muted/20 text-primary'
+                )}
+              >
+                <div className="flex items-center gap-1.5">
+                  <span className="cursor-pointer" onClick={() => toggleSort('urgency')}>דחיפות</span>
+                  <span className="cursor-pointer" onClick={() => toggleSort('urgency')}><SortIcon field="urgency" /></span>
+                  <FilterDropdown
+                    label="דחיפות"
+                    options={Object.entries(URGENCY_LABELS).map(([k, v]) => ({ value: k, label: v }))}
+                    selected={urgencyFilter}
+                    onToggle={toggleUrgencyFilter}
+                  />
+                </div>
+              </th>
+              <SortableHeader field="daysOpen" label="ימים פתוחים" />
               {role === 'consultant' && <th className="text-right px-4 py-3 font-semibold">פעולות</th>}
             </tr>
           </thead>
@@ -166,14 +306,14 @@ export default function RequestsList() {
                 <td className="px-4 py-3 font-medium tabular-nums">{req.id}</td>
                 <td className="px-4 py-3">{req.title}</td>
                 <td className="px-4 py-3 text-muted-foreground">{req.submitter}</td>
-                <td className="px-4 py-3 tabular-nums text-muted-foreground">
+                <td className={cn('px-4 py-3 tabular-nums text-muted-foreground', sortField === 'date' && 'bg-muted/10')}>
                   {new Date(req.date).toLocaleDateString('he-IL')}
                 </td>
-                <td className="px-4 py-3 tabular-nums font-medium">
+                <td className={cn('px-4 py-3 tabular-nums font-medium', sortField === 'amount' && 'bg-muted/10')}>
                   ₪{req.amount.toLocaleString('he-IL')}
                 </td>
                 <td className="px-4 py-3"><StatusBadge status={req.status} /></td>
-                <td className="px-4 py-3">
+                <td className={cn('px-4 py-3', sortField === 'urgency' && 'bg-muted/10')}>
                   <div className="flex items-center gap-1.5">
                     <span className={cn(
                       'text-xs font-medium',
@@ -186,7 +326,7 @@ export default function RequestsList() {
                     )}
                   </div>
                 </td>
-                <td className="px-4 py-3">
+                <td className={cn('px-4 py-3', sortField === 'daysOpen' && 'bg-muted/10')}>
                   <div className="flex items-center gap-1.5">
                     <span className="tabular-nums">{req.daysOpen}</span>
                     {req.daysOpen > 90 && (
