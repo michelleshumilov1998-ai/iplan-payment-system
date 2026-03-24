@@ -10,6 +10,9 @@ export default function ReviewApproval() {
   const pendingRequests = mockRequests.filter(r => r.status === 'in_review' || r.status === 'pending_clarification');
   const [selected, setSelected] = useState<PaymentRequest | null>(pendingRequests[0] || null);
   const [actionTaken, setActionTaken] = useState<Record<string, string>>({});
+  const [rejectionReasons, setRejectionReasons] = useState<Record<string, string>>({});
+  const [showRejectInput, setShowRejectInput] = useState<string | null>(null);
+  const [rejectDraft, setRejectDraft] = useState('');
 
   const handleAction = (id: string, action: string) => {
     const labels: Record<string, string> = {
@@ -19,6 +22,22 @@ export default function ReviewApproval() {
     };
     setActionTaken(prev => ({ ...prev, [id]: action }));
     toast({ title: labels[action], description: `בקשה ${id}` });
+  };
+
+  const handleRejectClick = (id: string) => {
+    setShowRejectInput(id);
+    setRejectDraft('');
+  };
+
+  const handleRejectConfirm = (id: string) => {
+    if (!rejectDraft.trim()) {
+      toast({ title: 'שגיאה', description: 'יש להזין סיבת דחייה', variant: 'destructive' });
+      return;
+    }
+    setRejectionReasons(prev => ({ ...prev, [id]: rejectDraft.trim() }));
+    setShowRejectInput(null);
+    setRejectDraft('');
+    handleAction(id, 'reject');
   };
 
   return (
@@ -48,6 +67,9 @@ export default function ReviewApproval() {
                 </div>
                 <p className="text-xs text-muted-foreground mt-0.5 truncate">{req.title}</p>
                 <div className="mt-1"><StatusBadge status={req.status} /></div>
+                {rejectionReasons[req.id] && (
+                  <p className="text-xs text-destructive mt-1 truncate">נדחה: {rejectionReasons[req.id]}</p>
+                )}
               </button>
             ))}
           </div>
@@ -68,6 +90,16 @@ export default function ReviewApproval() {
               <div className="flex items-center gap-2 px-3 py-2 bg-destructive/10 text-destructive text-sm font-medium rounded-sm border border-destructive/20">
                 <AlertTriangle className="h-4 w-4 shrink-0" />
                 חריגת SLA — הבקשה פתוחה {selected.daysOpen} ימים (מעל 90 יום)
+              </div>
+            )}
+
+            {rejectionReasons[selected.id] && (
+              <div className="flex items-start gap-2 px-3 py-2 bg-destructive/10 text-destructive text-sm rounded-sm border border-destructive/20">
+                <X className="h-4 w-4 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold">סיבת דחייה:</p>
+                  <p>{rejectionReasons[selected.id]}</p>
+                </div>
               </div>
             )}
 
@@ -119,28 +151,58 @@ export default function ReviewApproval() {
                 פעולה בוצעה בהצלחה
               </div>
             ) : (
-              <div className="flex gap-3 pt-2">
-                <button
-                  onClick={() => handleAction(selected.id, 'approve')}
-                  className="flex-1 flex items-center justify-center gap-2 h-10 bg-success text-success-foreground rounded-sm text-sm font-semibold hover:bg-success/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
-                >
-                  <Check className="h-4 w-4" />
-                  אשר לתשלום
-                </button>
-                <button
-                  onClick={() => handleAction(selected.id, 'reject')}
-                  className="flex-1 flex items-center justify-center gap-2 h-10 bg-destructive text-destructive-foreground rounded-sm text-sm font-semibold hover:bg-destructive/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
-                >
-                  <X className="h-4 w-4" />
-                  דחה
-                </button>
-                <button
-                  onClick={() => handleAction(selected.id, 'clarify')}
-                  className="flex-1 flex items-center justify-center gap-2 h-10 border border-border bg-background text-foreground rounded-sm text-sm font-semibold hover:bg-surface-alt transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
-                >
-                  <MessageSquare className="h-4 w-4" />
-                  בקש הבהרות
-                </button>
+              <div className="space-y-3 pt-2">
+                {showRejectInput === selected.id && (
+                  <div className="space-y-2 p-3 bg-destructive/5 border border-destructive/20 rounded-sm">
+                    <label className="text-xs font-semibold text-destructive">סיבת דחייה</label>
+                    <textarea
+                      value={rejectDraft}
+                      onChange={e => setRejectDraft(e.target.value)}
+                      rows={3}
+                      className="w-full px-3 py-2 border border-border rounded-sm bg-background text-foreground text-sm resize-none focus:outline-none focus:ring-2 focus:ring-destructive/50"
+                      placeholder="נא לפרט את סיבת הדחייה..."
+                      autoFocus
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleRejectConfirm(selected.id)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-destructive text-destructive-foreground rounded-sm text-xs font-semibold hover:bg-destructive/90 transition-colors"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                        אשר דחייה
+                      </button>
+                      <button
+                        onClick={() => setShowRejectInput(null)}
+                        className="px-3 py-1.5 border border-border rounded-sm text-xs font-medium hover:bg-surface-alt transition-colors"
+                      >
+                        ביטול
+                      </button>
+                    </div>
+                  </div>
+                )}
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => handleAction(selected.id, 'approve')}
+                    className="flex-1 flex items-center justify-center gap-2 h-10 bg-success text-success-foreground rounded-sm text-sm font-semibold hover:bg-success/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+                  >
+                    <Check className="h-4 w-4" />
+                    אשר לתשלום
+                  </button>
+                  <button
+                    onClick={() => handleRejectClick(selected.id)}
+                    className="flex-1 flex items-center justify-center gap-2 h-10 bg-destructive text-destructive-foreground rounded-sm text-sm font-semibold hover:bg-destructive/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+                  >
+                    <X className="h-4 w-4" />
+                    דחה
+                  </button>
+                  <button
+                    onClick={() => handleAction(selected.id, 'clarify')}
+                    className="flex-1 flex items-center justify-center gap-2 h-10 border border-border bg-background text-foreground rounded-sm text-sm font-semibold hover:bg-surface-alt transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+                  >
+                    <MessageSquare className="h-4 w-4" />
+                    בקש הבהרות
+                  </button>
+                </div>
               </div>
             )}
           </div>
