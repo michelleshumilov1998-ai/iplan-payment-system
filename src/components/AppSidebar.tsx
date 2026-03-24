@@ -5,9 +5,9 @@ import { cn } from '@/lib/utils';
 
 const navItems: Array<{ path: string; label: string; icon: typeof FileText; roles?: string[] }> = [
   { path: '/', label: 'רשימת בקשות', icon: FileText },
-  { path: '/submit', label: 'הגשת בקשה', icon: FilePlus },
+  { path: '/submit', label: 'הגשת בקשה', icon: FilePlus, roles: ['consultant'] },
   { path: '/review', label: 'בדיקה ואישור', icon: CheckSquare, roles: ['employee'] },
-  { path: '/dashboard', label: 'לוח בקרה SLA', icon: BarChart3 },
+  { path: '/dashboard', label: 'לוח בקרה SLA', icon: BarChart3, roles: ['employee'] },
 ];
 
 export default function AppSidebar() {
