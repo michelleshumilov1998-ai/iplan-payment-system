@@ -1,19 +1,14 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { PROJECTS, UNITS } from '@/lib/mockData';
 import { Upload, Send, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-function useHebrewValidity(ref: React.RefObject<HTMLElement | null>, message: string) {
-  useEffect(() => {
-    const el = ref.current as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement | null;
-    if (!el) return;
-    const handler = () => el.setCustomValidity(el.validity.valid ? '' : message);
-    el.addEventListener('invalid', handler);
-    el.addEventListener('input', () => el.setCustomValidity(''));
-    return () => {
-      el.removeEventListener('invalid', handler);
-    };
-  }, [ref, message]);
+interface FieldErrors {
+  title?: string;
+  description?: string;
+  amount?: string;
+  project?: string;
+  unit?: string;
 }
 
 export default function SubmissionForm() {
@@ -27,18 +22,30 @@ export default function SubmissionForm() {
     urgency: 'medium',
   });
   const [files, setFiles] = useState<string[]>([]);
+  const [errors, setErrors] = useState<FieldErrors>({});
 
-  const titleRef = useRef<HTMLInputElement>(null);
-  const descRef = useRef<HTMLTextAreaElement>(null);
-  const amountRef = useRef<HTMLInputElement>(null);
-  const projectRef = useRef<HTMLSelectElement>(null);
-  const unitRef = useRef<HTMLSelectElement>(null);
+  const validate = (): boolean => {
+    const e: FieldErrors = {};
+    if (!form.title.trim()) e.title = 'שדה זה הוא חובה';
+    if (!form.description.trim()) e.description = 'שדה זה הוא חובה';
+    if (!form.amount.trim()) {
+      e.amount = 'שדה זה הוא חובה';
+    } else if (parseFloat(form.amount) <= 0) {
+      e.amount = 'הסכום חייב להיות גדול מ-0';
+    }
+    if (!form.project) e.project = 'שדה זה הוא חובה';
+    if (!form.unit) e.unit = 'שדה זה הוא חובה';
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
 
-  useHebrewValidity(titleRef, 'נא למלא את כותרת הבקשה');
-  useHebrewValidity(descRef, 'נא למלא את פרטי הביצוע');
-  useHebrewValidity(amountRef, 'נא להזין סכום חיובי');
-  useHebrewValidity(projectRef, 'נא לבחור פרויקט');
-  useHebrewValidity(unitRef, 'נא לבחור יחידה ארגונית');
+  const clearError = (field: keyof FieldErrors) => {
+    setErrors(prev => {
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
 
   const handleFileUpload = () => {
     const fakeFiles = ['חשבונית_' + Date.now() + '.pdf'];
@@ -48,59 +55,56 @@ export default function SubmissionForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (parseFloat(form.amount) <= 0) {
-      toast({ title: 'שגיאה', description: 'הסכום חייב להיות גדול מ-0', variant: 'destructive' });
-      return;
-    }
+    if (!validate()) return;
     toast({ title: 'הבקשה הוגשה בהצלחה', description: 'מספר בקשה: REQ-2025-009' });
     setForm({ title: '', description: '', amount: '', project: '', unit: '', urgency: 'medium' });
     setFiles([]);
+    setErrors({});
   };
+
+  const inputClass = (field: keyof FieldErrors, base: string) =>
+    `${base} ${errors[field] ? 'border-destructive ring-1 ring-destructive/30' : ''}`;
 
   return (
     <div className="p-6 max-w-2xl animate-fade-in-up">
       <h1 className="text-2xl font-bold text-foreground mb-6">הגשת בקשת תשלום חדשה</h1>
 
-      <form onSubmit={handleSubmit} className="bg-card border border-border rounded-sm p-6 space-y-5">
+      <form onSubmit={handleSubmit} noValidate className="bg-card border border-border rounded-sm p-6 space-y-5">
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">כותרת הבקשה</label>
           <input
-            ref={titleRef}
-            required
             value={form.title}
-            onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-            className="w-full h-10 px-3 border border-border rounded-sm bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+            onChange={e => { setForm(f => ({ ...f, title: e.target.value })); clearError('title'); }}
+            className={inputClass('title', 'w-full h-10 px-3 border border-border rounded-sm bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-accent')}
             placeholder="תיאור קצר של הבקשה"
           />
+          {errors.title && <p className="text-xs font-medium text-destructive">{errors.title}</p>}
         </div>
 
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">פרטי ביצוע</label>
           <textarea
-            ref={descRef}
-            required
             value={form.description}
-            onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+            onChange={e => { setForm(f => ({ ...f, description: e.target.value })); clearError('description'); }}
             rows={4}
-            className="w-full px-3 py-2 border border-border rounded-sm bg-background text-foreground text-sm resize-none focus:outline-none focus:ring-2 focus:ring-accent"
+            className={inputClass('description', 'w-full px-3 py-2 border border-border rounded-sm bg-background text-foreground text-sm resize-none focus:outline-none focus:ring-2 focus:ring-accent')}
             placeholder="פירוט העבודה שבוצעה, תוצרים, אבני דרך..."
           />
+          {errors.description && <p className="text-xs font-medium text-destructive">{errors.description}</p>}
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">סכום (₪)</label>
             <input
-              ref={amountRef}
-              required
               type="number"
-              min="0.01"
               step="any"
               value={form.amount}
-              onChange={e => setForm(f => ({ ...f, amount: e.target.value }))}
-              className="w-full h-10 px-3 border border-border rounded-sm bg-background text-foreground text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-accent"
+              onChange={e => { setForm(f => ({ ...f, amount: e.target.value })); clearError('amount'); }}
+              className={inputClass('amount', 'w-full h-10 px-3 border border-border rounded-sm bg-background text-foreground text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-accent')}
               placeholder="0"
             />
+            {errors.amount && <p className="text-xs font-medium text-destructive">{errors.amount}</p>}
           </div>
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">דחיפות</label>
@@ -120,28 +124,26 @@ export default function SubmissionForm() {
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">פרויקט</label>
             <select
-              ref={projectRef}
-              required
               value={form.project}
-              onChange={e => setForm(f => ({ ...f, project: e.target.value }))}
-              className="w-full h-10 px-3 border border-border rounded-sm bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+              onChange={e => { setForm(f => ({ ...f, project: e.target.value })); clearError('project'); }}
+              className={inputClass('project', 'w-full h-10 px-3 border border-border rounded-sm bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-accent')}
             >
               <option value="">בחר פרויקט</option>
               {PROJECTS.map(p => <option key={p} value={p}>{p}</option>)}
             </select>
+            {errors.project && <p className="text-xs font-medium text-destructive">{errors.project}</p>}
           </div>
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">יחידה ארגונית</label>
             <select
-              ref={unitRef}
-              required
               value={form.unit}
-              onChange={e => setForm(f => ({ ...f, unit: e.target.value }))}
-              className="w-full h-10 px-3 border border-border rounded-sm bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+              onChange={e => { setForm(f => ({ ...f, unit: e.target.value })); clearError('unit'); }}
+              className={inputClass('unit', 'w-full h-10 px-3 border border-border rounded-sm bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-accent')}
             >
               <option value="">בחר יחידה</option>
               {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
             </select>
+            {errors.unit && <p className="text-xs font-medium text-destructive">{errors.unit}</p>}
           </div>
         </div>
 
