@@ -1,27 +1,52 @@
 import { useState } from 'react';
-import { mockRequests, PaymentRequest, STATUS_LABELS } from '@/lib/mockData';
+import { useRequests } from '@/context/RequestsContext';
+import { PaymentRequest, STATUS_LABELS } from '@/lib/mockData';
 import StatusBadge from '@/components/StatusBadge';
 import { Check, X, MessageSquare, AlertTriangle, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export default function ReviewApproval() {
   const { toast } = useToast();
-  const pendingRequests = mockRequests.filter(r => r.status === 'in_review' || r.status === 'pending_clarification');
+  const { requests, updateStatus } = useRequests();
+  const pendingRequests = requests.filter(r => r.status === 'in_review' || r.status === 'pending_clarification');
   const [selected, setSelected] = useState<PaymentRequest | null>(pendingRequests[0] || null);
   const [actionTaken, setActionTaken] = useState<Record<string, string>>({});
   const [rejectionReasons, setRejectionReasons] = useState<Record<string, string>>({});
   const [showRejectInput, setShowRejectInput] = useState<string | null>(null);
   const [rejectDraft, setRejectDraft] = useState('');
+  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; action: string; id: string }>({ open: false, action: '', id: '' });
 
-  const handleAction = (id: string, action: string) => {
+  const executeAction = (id: string, action: string) => {
     const labels: Record<string, string> = {
       approve: 'הבקשה אושרה לתשלום',
       reject: 'הבקשה נדחתה',
       clarify: 'נשלחה בקשה להבהרות',
     };
+    if (action === 'approve') updateStatus(id, 'approved');
+    if (action === 'clarify') updateStatus(id, 'pending_clarification');
     setActionTaken(prev => ({ ...prev, [id]: action }));
     toast({ title: labels[action], description: `בקשה ${id}` });
+  };
+
+  const handleApproveClick = (id: string) => {
+    setConfirmDialog({ open: true, action: 'approve', id });
+  };
+
+  const handleConfirmAction = () => {
+    const { id, action } = confirmDialog;
+    setConfirmDialog({ open: false, action: '', id: '' });
+    executeAction(id, action);
   };
 
   const handleRejectClick = (id: string) => {
@@ -37,20 +62,40 @@ export default function ReviewApproval() {
     setRejectionReasons(prev => ({ ...prev, [id]: rejectDraft.trim() }));
     setShowRejectInput(null);
     setRejectDraft('');
-    handleAction(id, 'reject');
+    setConfirmDialog({ open: true, action: 'reject', id });
+  };
+
+  const confirmMessages: Record<string, { title: string; desc: string }> = {
+    approve: { title: 'אישור תשלום', desc: 'האם את/ה בטוח/ה שברצונך לאשר את התשלום?' },
+    reject: { title: 'דחיית בקשה', desc: 'האם את/ה בטוח/ה שברצונך לדחות את הבקשה?' },
   };
 
   return (
-    <div className="p-6 animate-fade-in-up">
+    <div className="p-4 md:p-6 animate-fade-in-up">
       <h1 className="text-2xl font-bold text-foreground mb-6">בדיקה ואישור בקשות</h1>
 
-      <div className="grid grid-cols-[300px_1fr] gap-4">
+      <AlertDialog open={confirmDialog.open} onOpenChange={open => !open && setConfirmDialog({ open: false, action: '', id: '' })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{confirmMessages[confirmDialog.action]?.title}</AlertDialogTitle>
+            <AlertDialogDescription>{confirmMessages[confirmDialog.action]?.desc}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex gap-2">
+            <AlertDialogCancel>ביטול</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmAction}>
+              {confirmDialog.action === 'approve' ? 'אשר' : 'דחה'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <div className="grid grid-cols-1 md:grid-cols-[300px_1fr] gap-4">
         {/* List */}
         <div className="bg-card border border-border rounded-sm overflow-hidden">
           <div className="px-4 py-3 bg-surface-alt border-b border-border text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             בקשות ממתינות ({pendingRequests.length})
           </div>
-          <div className="divide-y divide-border">
+          <div className="divide-y divide-border max-h-[60vh] md:max-h-none overflow-y-auto">
             {pendingRequests.map(req => (
               <button
                 key={req.id}
@@ -77,7 +122,7 @@ export default function ReviewApproval() {
 
         {/* Detail */}
         {selected ? (
-          <div className="bg-card border border-border rounded-sm p-6 space-y-5">
+          <div className="bg-card border border-border rounded-sm p-4 md:p-6 space-y-5">
             <div className="flex items-start justify-between">
               <div>
                 <h2 className="text-lg font-bold text-foreground">{selected.title}</h2>
@@ -180,24 +225,24 @@ export default function ReviewApproval() {
                     </div>
                   </div>
                 )}
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <button
-                    onClick={() => handleAction(selected.id, 'approve')}
-                    className="flex-1 flex items-center justify-center gap-2 h-10 bg-success text-success-foreground rounded-sm text-sm font-semibold hover:bg-success/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+                    onClick={() => handleApproveClick(selected.id)}
+                    className="flex-1 flex items-center justify-center gap-2 h-10 bg-success text-success-foreground rounded-sm text-sm font-semibold hover:bg-success/90 transition-colors"
                   >
                     <Check className="h-4 w-4" />
                     אשר לתשלום
                   </button>
                   <button
                     onClick={() => handleRejectClick(selected.id)}
-                    className="flex-1 flex items-center justify-center gap-2 h-10 bg-destructive text-destructive-foreground rounded-sm text-sm font-semibold hover:bg-destructive/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+                    className="flex-1 flex items-center justify-center gap-2 h-10 bg-destructive text-destructive-foreground rounded-sm text-sm font-semibold hover:bg-destructive/90 transition-colors"
                   >
                     <X className="h-4 w-4" />
                     דחה
                   </button>
                   <button
-                    onClick={() => handleAction(selected.id, 'clarify')}
-                    className="flex-1 flex items-center justify-center gap-2 h-10 border border-border bg-background text-foreground rounded-sm text-sm font-semibold hover:bg-surface-alt transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+                    onClick={() => executeAction(selected.id, 'clarify')}
+                    className="flex-1 flex items-center justify-center gap-2 h-10 border border-border bg-background text-foreground rounded-sm text-sm font-semibold hover:bg-surface-alt transition-colors"
                   >
                     <MessageSquare className="h-4 w-4" />
                     בקש הבהרות
@@ -207,7 +252,7 @@ export default function ReviewApproval() {
             )}
           </div>
         ) : (
-          <div className="bg-card border border-border rounded-sm flex items-center justify-center text-muted-foreground text-sm">
+          <div className="bg-card border border-border rounded-sm flex items-center justify-center text-muted-foreground text-sm py-16">
             בחר בקשה מהרשימה
           </div>
         )}

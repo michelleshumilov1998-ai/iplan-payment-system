@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { RoleProvider } from "@/context/RoleContext";
+import { RequestsProvider } from "@/context/RequestsContext";
 import AppSidebar from "@/components/AppSidebar";
 import AppHeader from "@/components/AppHeader";
 import RequestsList from "@/pages/RequestsList";
@@ -18,23 +19,25 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <RoleProvider>
-        <BrowserRouter>
-          <div className="flex min-h-screen">
-            <AppSidebar />
-            <div className="flex-1 flex flex-col min-h-screen">
-              <AppHeader />
-              <main className="flex-1 overflow-auto">
-                <Routes>
-                  <Route path="/" element={<RequestsList />} />
-                  <Route path="/submit" element={<SubmissionForm />} />
-                  <Route path="/review" element={<ReviewApproval />} />
-                  <Route path="/dashboard" element={<SLADashboard />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </main>
+        <RequestsProvider>
+          <BrowserRouter>
+            <div className="flex min-h-screen">
+              <AppSidebar />
+              <div className="flex-1 flex flex-col min-h-screen">
+                <AppHeader />
+                <main className="flex-1 overflow-auto">
+                  <Routes>
+                    <Route path="/" element={<RequestsList />} />
+                    <Route path="/submit" element={<SubmissionForm />} />
+                    <Route path="/review" element={<ReviewApproval />} />
+                    <Route path="/dashboard" element={<SLADashboard />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </main>
+              </div>
             </div>
-          </div>
-        </BrowserRouter>
+          </BrowserRouter>
+        </RequestsProvider>
       </RoleProvider>
     </TooltipProvider>
   </QueryClientProvider>
