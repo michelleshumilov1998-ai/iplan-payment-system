@@ -34,6 +34,7 @@ export default function ReviewApproval() {
       clarify: 'נשלחה בקשה להבהרות',
     };
     if (action === 'approve') updateStatus(id, 'approved');
+    if (action === 'reject') updateStatus(id, 'draft');
     if (action === 'clarify') updateStatus(id, 'pending_clarification');
     setActionTaken(prev => ({ ...prev, [id]: action }));
     toast({ title: labels[action], description: `בקשה ${id}` });
