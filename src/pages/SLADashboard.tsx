@@ -1,4 +1,5 @@
 import { slaDashboardData, mockRequests } from '@/lib/mockData';
+import StatusBadge from '@/components/StatusBadge';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, ReferenceLine, Legend } from 'recharts';
 import { AlertTriangle, Clock, CheckCircle, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -17,7 +18,6 @@ export default function SLADashboard() {
     <div className="p-6 space-y-6 animate-fade-in-up">
       <h1 className="text-2xl font-bold text-foreground">לוח בקרה — SLA ביצועים</h1>
 
-      {/* KPIs */}
       <div className="grid grid-cols-4 gap-4">
         {kpis.map((kpi, i) => {
           const Icon = kpi.icon;
@@ -39,7 +39,6 @@ export default function SLADashboard() {
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        {/* Bar chart */}
         <div className="bg-card border border-border rounded-sm p-6">
           <h2 className="text-base font-semibold text-foreground mb-4">זמני טיפול חודשיים (ממוצע ימים)</h2>
           <ResponsiveContainer width="100%" height={280}>
@@ -62,7 +61,6 @@ export default function SLADashboard() {
           </ResponsiveContainer>
         </div>
 
-        {/* Pie chart */}
         <div className="bg-card border border-border rounded-sm p-6">
           <h2 className="text-base font-semibold text-foreground mb-4">התפלגות לפי סטטוס</h2>
           <ResponsiveContainer width="100%" height={280}>
@@ -97,7 +95,6 @@ export default function SLADashboard() {
         </div>
       </div>
 
-      {/* SLA breach table */}
       <div className="bg-card border border-border rounded-sm overflow-hidden">
         <div className="px-4 py-3 bg-surface-alt border-b border-border flex items-center gap-2">
           <AlertTriangle className="h-4 w-4 text-destructive" />
@@ -137,6 +134,3 @@ export default function SLADashboard() {
     </div>
   );
 }
-
-// Need to import StatusBadge
-import StatusBadge from '@/components/StatusBadge';
