@@ -152,19 +152,6 @@ export default function RequestsList() {
               className="h-9 pr-9 pl-3 w-48 md:w-56 text-sm border border-border rounded-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
             />
           </div>
-          <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-muted-foreground" />
-            <select
-              value={statusFilter}
-              onChange={e => setStatusFilter(e.target.value as RequestStatus | 'all')}
-              className="text-sm border border-border rounded-sm px-2 py-1.5 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
-            >
-              <option value="all">כל הסטטוסים</option>
-              {Object.entries(STATUS_LABELS).map(([k, v]) => (
-                <option key={k} value={k}>{v}</option>
-              ))}
-            </select>
-          </div>
         </div>
       </div>
 
