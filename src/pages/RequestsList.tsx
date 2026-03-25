@@ -35,7 +35,7 @@ export default function RequestsList() {
 
   const filtered = useMemo(() => {
     return requests
-      .filter(r => statusFilter === 'all' || r.status === statusFilter)
+      
       .filter(r => statusColFilter.length === 0 || statusColFilter.includes(r.status))
       .filter(r => urgencyFilter.length === 0 || urgencyFilter.includes(r.urgency))
       .filter(r => {
