@@ -17,7 +17,7 @@ export default function RequestsList() {
   const { requests } = useRequests();
   const { role } = useRole();
   const navigate = useNavigate();
-  const [statusFilter, setStatusFilter] = useState<RequestStatus | 'all'>('all');
+  
   const [search, setSearch] = useState('');
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>('desc');
