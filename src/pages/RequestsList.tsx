@@ -55,7 +55,7 @@ export default function RequestsList() {
           default: return 0;
         }
       });
-  }, [requests, statusFilter, statusColFilter, urgencyFilter, search, sortField, sortDir]);
+  }, [requests, statusColFilter, urgencyFilter, search, sortField, sortDir]);
 
   const SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field) return <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground/50" />;
