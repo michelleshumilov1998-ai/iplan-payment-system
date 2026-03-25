@@ -17,7 +17,7 @@ export default function RequestsList() {
   const { requests } = useRequests();
   const { role } = useRole();
   const navigate = useNavigate();
-  const [statusFilter, setStatusFilter] = useState<RequestStatus | 'all'>('all');
+  
   const [search, setSearch] = useState('');
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>('desc');
@@ -35,7 +35,7 @@ export default function RequestsList() {
 
   const filtered = useMemo(() => {
     return requests
-      .filter(r => statusFilter === 'all' || r.status === statusFilter)
+      
       .filter(r => statusColFilter.length === 0 || statusColFilter.includes(r.status))
       .filter(r => urgencyFilter.length === 0 || urgencyFilter.includes(r.urgency))
       .filter(r => {
@@ -55,7 +55,7 @@ export default function RequestsList() {
           default: return 0;
         }
       });
-  }, [requests, statusFilter, statusColFilter, urgencyFilter, search, sortField, sortDir]);
+  }, [requests, statusColFilter, urgencyFilter, search, sortField, sortDir]);
 
   const SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field) return <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground/50" />;
@@ -151,19 +151,6 @@ export default function RequestsList() {
               placeholder="חיפוש לפי שם או כותרת..."
               className="h-9 pr-9 pl-3 w-48 md:w-56 text-sm border border-border rounded-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
             />
-          </div>
-          <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-muted-foreground" />
-            <select
-              value={statusFilter}
-              onChange={e => setStatusFilter(e.target.value as RequestStatus | 'all')}
-              className="text-sm border border-border rounded-sm px-2 py-1.5 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
-            >
-              <option value="all">כל הסטטוסים</option>
-              {Object.entries(STATUS_LABELS).map(([k, v]) => (
-                <option key={k} value={k}>{v}</option>
-              ))}
-            </select>
           </div>
         </div>
       </div>
