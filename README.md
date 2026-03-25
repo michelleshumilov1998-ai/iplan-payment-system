@@ -32,14 +32,12 @@
 
 ### 2. דוגמאות לפרומפטים למימוש לוגיקה מורכבת:
 
-**מימוש הסינון הדו-שכבתי:**
-
 **הנחיה למימוש הסינון הדו-שכבתי:**
 > Implement dual-layer navigation: 1. A global top search bar for quick lookup. 2. Granular column sorting and filtering (Date, Amount, Urgency) within the table. This is essential for managing large datasets and prioritizing tasks.
 
-**מימוש וולידציה מותאמת אישית:**
-Create a custom validation hook for the payment form. If the amount is <= 0, prevent submission and show a Hebrew toast notification: 'סכום הבקשה חייב להיות חיובי'.
-
+**הנחיה למימוש וולידציה מותאמת אישית:**
+> Create a custom validation hook for the payment form. If the amount is <= 0, prevent submission and show a Hebrew toast notification: 'סכום הבקשה חייב להיות חיובי'. Override default browser tooltips for a consistent UI.
+> 
 ## היבטים טכנולוגיים וראייה לעתיד
 בתכנון גרסת ה-Production של המערכת יושמו המרכיבים הבאים:
 * אימות זהות וניהול סשנים מאובטחים באמצעות **JWT**.
