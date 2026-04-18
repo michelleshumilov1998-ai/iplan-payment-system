@@ -1,6 +1,8 @@
 # מערכת ניהול דרישות תשלום – אב-טיפוס (iPlan Vibe Coding Challenge)
 **מוגש עבור: מינהל התכנון – אגף בכיר טכנולוגיות דיגיטליות ומידע**
 
+### 🔗 [Live Demo - View the Application](https://payments-management-michelle.lovable.app)
+
 ![iPlan Payment System Screenshot](website.png)
 
 ![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB) ![TailwindCSS](https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white) ![Lovable](https://img.shields.io/badge/Methodology-Vibe%20Coding-blue?style=for-the-badge) ![RTL](https://img.shields.io/badge/Support-RTL%20Hebrew-red?style=for-the-badge)
